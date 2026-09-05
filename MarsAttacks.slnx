@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Ingenuity.Tests/Ingenuity.Tests.csproj" />
+  <Project Path="Ingenuity/Ingenuity.csproj" />
+</Solution>

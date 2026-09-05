@@ -60,10 +60,10 @@ class Robot
             X = nx;
             Y = ny;
         }
-        else if (!world.HasScent(ny, ny)) // ignore further commands
+        else if (!world.HasScent(X, Y)) // off map 
         {
-            world.AddScent(nx, ny);
-            IsLost = true; // stays put - last safe coordinate
+            world.AddScent(X, Y);   // last safe coordinate
+            IsLost = true;          // stays put - ignore further commands
         }
     }
 
@@ -146,8 +146,8 @@ class Program
             if(parts.Length == 2 
             && int.TryParse(parts[0],out int x) 
             && int.TryParse(parts[1],out int y)
-            && x is >=0 and <MaxCoordinate
-            && y is >=0 and <MaxCoordinate)
+            && x is >=0 and <=MaxCoordinate
+            && y is >=0 and <=MaxCoordinate)
             {
                 return new World(x, y);
             }
@@ -179,7 +179,7 @@ class Program
         commands = instructions.Trim().ToUpper();
         if(commands.Length > MaxInstructionLength || commands.Any(c => !"LRF".Contains(c)))
         { 
-            error = "Invalid commands. Use only L|R|F characters. Max number of commands {MaxInstructionLength}.";
+            error = $"Invalid commands. Use only L|R|F characters. Max number of commands {MaxInstructionLength}.";
             return false;
         }
 
