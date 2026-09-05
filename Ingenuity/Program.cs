@@ -6,6 +6,7 @@ class World
 {
     public int MxX {get;}
     public int MxY {get;}
+    private readonly HashSet<(int x, int y)> _marker = new();
     
     public World(int maxX, int maxY)
     {
@@ -16,6 +17,14 @@ class World
     public bool Contains(int x, int y)
     {
         return x >= 0 && y >= 0 && x <= MxX && y <= MxY;
+    }
+    public void AddScent(int x, int y)
+    {
+        _marker.Add((x, y));
+    }
+    public bool HasScent(int x, int y)
+    {
+        return _marker.Contains((x, y));
     }
 }
 class Robot
@@ -32,10 +41,8 @@ class Robot
         orientation = o;
     }
 
-    //TODO: test orientation
     public void TurnRight() => orientation = (Orientation)(((int)orientation +1) % 4);
     public void TurnLeft() => orientation = (Orientation)(((int)orientation +3) % 4);
-
     public void MoveForward(World world)
     {
         (int dx, int dy) = orientation switch
@@ -53,7 +60,11 @@ class Robot
             X = nx;
             Y = ny;
         }
-
+        else if (!world.HasScent(ny, ny)) // ignore further commands
+        {
+            world.AddScent(nx, ny);
+            IsLost = true; // stays put - last safe coordinate
+        }
     }
 
     public override string ToString()
@@ -61,6 +72,7 @@ class Robot
         return $"{X} {Y} {orientation}" + (IsLost? " LOST": "");
     }    
 }
+
 static class MissionControl
 {
     public static void Navigate(World world, Robot robot, string commands)
@@ -74,11 +86,12 @@ static class MissionControl
                 case 'L' : robot.TurnLeft(); break;
                 case 'R' : robot.TurnRight(); break;
                 case 'F' : robot.MoveForward(world); break;
-                default : throw new ArgumentException($"Invalid Command: {c}.");
+                default : throw new ArgumentException($"Invalid Command: {c}."); // skipp invalid commands - allow continue ?
             }
         }
     }
 }
+
 class Program
 {
     const int MaxCoordinate = 50;
@@ -86,25 +99,29 @@ class Program
 
     static void Main(string[] args)
     {
-        Console.WriteLine("Hello, Mars!");
+        Console.WriteLine("Mars Attacks!!");
         World world = ReadWorld();
         var journeys = new List<Robot>();
         
-        Console.WriteLine("Enter empty record to finish.");
+        Console.WriteLine("Add Robots");
+        Console.WriteLine("- A position consists of two integers specifying the initial coordinates of the robot\n  with an orientation (N, S, E, W), all separated by whitespace on one line e.g. '12 34 E'");
+        Console.WriteLine("- A robot instruction is a string of the letters “L”, “R”, and “F” on one line (no spaces) e.g. 'RFRFLFLF'");
+        Console.WriteLine("- Enter empty record to finish.");
+
         while (true)
         {
             
-            Console.Write($"Robot {journeys.Count +1} position x y (N|E|S|W) :");
+            Console.Write($"Robot {journeys.Count +1} \nPosition:");
             string? position = Console.ReadLine();
 
-            Console.Write("Instructions (L|R|F) :");
+            Console.Write("Instructions:");
             string? instructions = Console.ReadLine();
 
             if(String.IsNullOrWhiteSpace(position) || String.IsNullOrWhiteSpace(instructions)) break;
 
             if(!TryParseRobot(position, instructions, out Robot robot, out string commands, out string err))
             {
-                Console.WriteLine(err);
+                Console.WriteLine($"  Error: {err}");
                 continue; // load next robot
             }
 
@@ -116,9 +133,6 @@ class Program
         foreach(Robot r in journeys)
         Console.WriteLine(r);
     }
-
-
-
 
     static World ReadWorld()
     {
@@ -154,7 +168,7 @@ class Program
         || !int.TryParse(parts[1],out int y)
         || !Enum.TryParse(parts[2], ignoreCase: true, out Orientation o))
         {
-            error = "Robot position must be formatted: (x-coordinate) (y-coordinate) (orientation).\nSeperated with spaces and use only one char (N|E|S|W) for Orientation.\n Please try again.";
+            error = "Robot position must be formatted: (x-coordinate) (y-coordinate) (orientation).\n  Seperated with spaces and use only one char (N|E|S|W) for Orientation.\n  Please try again.";
             return false; 
         }
         if (x is <0 or >MaxCoordinate || y is <0 or >MaxCoordinate)
@@ -172,7 +186,5 @@ class Program
         robot = new Robot(x, y, o);
         return true;
     }
-
-
 }
 
