@@ -33,8 +33,8 @@ class Robot
     }
 
     //TODO: test orientation
-    public void TurnRight() => orientation = (Orientation)((int)orientation +1);
-    public void TurnLeft() => orientation = (Orientation)((int)orientation - 1);
+    public void TurnRight() => orientation = (Orientation)(((int)orientation +1) % 4);
+    public void TurnLeft() => orientation = (Orientation)(((int)orientation +3) % 4);
 
     public void MoveForward(World world)
     {
@@ -44,7 +44,7 @@ class Robot
             Orientation.E => (1, 0),
             Orientation.S => (0, -1),
             Orientation.W => (-1, 0),
-            _ => (0, 0) // throw new InvalidOperationException() // 
+            _ => throw new InvalidOperationException()
         };
         int nx = X + dx, ny = Y + dy;
         
@@ -63,11 +63,19 @@ class Robot
 }
 static class MissionControl
 {
-    public static void Navigate(Robot robot, string commands)
+    public static void Navigate(World world, Robot robot, string commands)
     {
         foreach(char c in commands)
         {
             if (robot.IsLost) break;   
+
+            switch(c)
+            {
+                case 'L' : robot.TurnLeft(); break;
+                case 'R' : robot.TurnRight(); break;
+                case 'F' : robot.MoveForward(world); break;
+                default : throw new ArgumentException($"Invalid Command: {c}.");
+            }
         }
     }
 }
@@ -89,19 +97,19 @@ class Program
             Console.Write($"Robot {journeys.Count +1} position x y (N|E|S|W) :");
             string? position = Console.ReadLine();
 
-            if(String.IsNullOrWhiteSpace(position)) break;
-
             Console.Write("Instructions (L|R|F) :");
             string? instructions = Console.ReadLine();
+
+            if(String.IsNullOrWhiteSpace(position) || String.IsNullOrWhiteSpace(instructions)) break;
 
             if(!TryParseRobot(position, instructions, out Robot robot, out string commands, out string err))
             {
                 Console.WriteLine(err);
-                continue; // next robot
+                continue; // load next robot
             }
 
-            // compute journy for wrold - robot - commands 
-
+            // Plot robot journey on world-map 
+            MissionControl.Navigate(world, robot, commands);
             journeys.Add(robot);
         }
         
