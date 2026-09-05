@@ -32,10 +32,44 @@ class Robot
         orientation = o;
     }
 
+    //TODO: test orientation
+    public void TurnRight() => orientation = (Orientation)((int)orientation +1);
+    public void TurnLeft() => orientation = (Orientation)((int)orientation - 1);
+
+    public void MoveForward(World world)
+    {
+        (int dx, int dy) = orientation switch
+        {
+            Orientation.N => (0, 1),
+            Orientation.E => (1, 0),
+            Orientation.S => (0, -1),
+            Orientation.W => (-1, 0),
+            _ => (0, 0) // throw new InvalidOperationException() // 
+        };
+        int nx = X + dx, ny = Y + dy;
+        
+        if(world.Contains(nx, ny)) // still on map
+        {
+            X = nx;
+            Y = ny;
+        }
+
+    }
+
     public override string ToString()
     {
         return $"{X} {Y} {orientation}" + (IsLost? " LOST": "");
     }    
+}
+static class MissionControl
+{
+    public static void Navigate(Robot robot, string commands)
+    {
+        foreach(char c in commands)
+        {
+            if (robot.IsLost) break;   
+        }
+    }
 }
 class Program
 {
@@ -47,24 +81,26 @@ class Program
         Console.WriteLine("Hello, Mars!");
         World world = ReadWorld();
         var journeys = new List<Robot>();
-        bool feed = true;
-
-        while (feed)
+        
+        Console.WriteLine("Enter empty record to finish.");
+        while (true)
         {
-            Console.Write($"Robot {journeys.Count +1} position x y N|E|S|W ");
+            
+            Console.Write($"Robot {journeys.Count +1} position x y (N|E|S|W) :");
             string? position = Console.ReadLine();
 
-            if(String.IsNullOrWhiteSpace(position)) feed=false;
+            if(String.IsNullOrWhiteSpace(position)) break;
 
-            Console.Write("Instructions L|R|F ");
+            Console.Write("Instructions (L|R|F) :");
             string? instructions = Console.ReadLine();
 
-            if(!TryParseRobot(position, instructions, out Robot robot, out string commands))
+            if(!TryParseRobot(position, instructions, out Robot robot, out string commands, out string err))
             {
-                Console.Write("Error");
+                Console.WriteLine(err);
+                continue; // next robot
             }
 
-            // compute journy for robot here
+            // compute journy for wrold - robot - commands 
 
             journeys.Add(robot);
         }
@@ -78,40 +114,51 @@ class Program
 
     static World ReadWorld()
     {
-        Console.Write("Enter the max coordinates. Upper Right (x:y)");
-        string? line = Console.ReadLine();
-        if(String.IsNullOrWhiteSpace(line)) Console.Write("No input!");
-        
-        string[] parts = line.Split(' ');
-        if(parts.Length == 2 && int.TryParse(parts[0],out int x) && int.TryParse(parts[1],out int y))
+        while(true)
         {
-            return new World(x, y);
+            Console.Write("Enter the grid size coordinates, Upper Right (x y) :");
+            string? line = Console.ReadLine();
+            if(String.IsNullOrWhiteSpace(line)) throw new InvalidOperationException("No input!");
+            
+            string[] parts = line.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if(parts.Length == 2 
+            && int.TryParse(parts[0],out int x) 
+            && int.TryParse(parts[1],out int y)
+            && x is >=0 and <MaxCoordinate
+            && y is >=0 and <MaxCoordinate)
+            {
+                return new World(x, y);
+            }
+            
+            Console.WriteLine($"Expecting two integer values between 0 and {MaxCoordinate}.");            
         }
-        // handle err better 
-        else{ throw new InvalidOperationException(); }
     }
 
-    static bool TryParseRobot(string position, string instructions, out Robot robot, out string commands)
+    static bool TryParseRobot(string position, string instructions, out Robot robot, out string commands, out string error)
     {
-        robot = null;
+        robot = null!;
         commands = "";
+        error = "";
         
-        string[] parts = position.Split(' ');
+        string[] parts = position.Split(' ', StringSplitOptions.RemoveEmptyEntries);
         if(parts.Length != 3 
-        || int.TryParse(parts[0],out int x) 
-        || int.TryParse(parts[1],out int y)
-        || !Enum.TryParse(parts[2], out Orientation o))
+        || !int.TryParse(parts[0],out int x) 
+        || !int.TryParse(parts[1],out int y)
+        || !Enum.TryParse(parts[2], ignoreCase: true, out Orientation o))
         {
-            return false; // position must be [x y N|E|S|W]
+            error = "Robot position must be formatted: (x-coordinate) (y-coordinate) (orientation).\nSeperated with spaces and use only one char (N|E|S|W) for Orientation.\n Please try again.";
+            return false; 
         }
         if (x is <0 or >MaxCoordinate || y is <0 or >MaxCoordinate)
         {
-            return false; // Coordinate must range from 0 to Max   
+            error = $"Coordinate must range from 0 to {MaxCoordinate}.";
+            return false;   
         }
         commands = instructions.Trim().ToUpper();
-        if(commands.Length > MaxInstructionLength || commands.Any(c => "LRF".Contains(c)))
-        {
-            return false; // only valid commands L|R|F - under {MaxInstructionLength} chars
+        if(commands.Length > MaxInstructionLength || commands.Any(c => !"LRF".Contains(c)))
+        { 
+            error = "Invalid commands. Use only L|R|F characters. Max number of commands {MaxInstructionLength}.";
+            return false;
         }
 
         robot = new Robot(x, y, o);
