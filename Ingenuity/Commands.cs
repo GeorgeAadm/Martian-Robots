@@ -54,7 +54,7 @@ class MoveBackwardCommand: ICommand
 
 class CommandSet
 {
-    public readonly Dictionary<char, ICommand> Commands = new();
+    readonly Dictionary<char, ICommand> Commands = new();
 
     public CommandSet(IEnumerable<ICommand> commands)
     {

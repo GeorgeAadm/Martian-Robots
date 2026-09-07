@@ -89,8 +89,8 @@ class Program
         var journeys = new List<Robot>();
         
         Console.WriteLine("Add Robots");
-        Console.WriteLine("- A position consists of two integers specifying the initial coordinates of the robot\n  with an orientation (N, S, E, W), all separated by whitespace on one line e.g. '12 34 E'");
-        Console.WriteLine("- A robot instruction is a string of the letters “L”, “R”, and “F” on one line (no spaces) e.g. 'RFRFLFLF'");
+        Console.WriteLine($"- A position consists of two integers specifying the initial coordinates of the robot\n  with an orientation {String.Join('|', Enum.GetNames<Orientation>())}, all separated by whitespace on one line e.g. '12 34 E'");
+        Console.WriteLine($"- A robot instruction is a string of the letters {String.Join('|', Commands.Letters())} on one line (no spaces) e.g. 'RFRFLFLF'");
         Console.WriteLine("- Enter empty record to finish.");
 
         while (true)
