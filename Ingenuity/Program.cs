@@ -1,6 +1,6 @@
 ﻿namespace Ingenuity;
 
-enum Orientation { N, E, S, W }
+public enum Orientation { N, E, S, W }
 
 class World
 {
@@ -14,18 +14,9 @@ class World
         MxY = maxY;
     }
 
-    public bool Contains(int x, int y)
-    {
-        return x >= 0 && y >= 0 && x <= MxX && y <= MxY;
-    }
-    public void AddScent(int x, int y)
-    {
-        _marker.Add((x, y));
-    }
-    public bool HasScent(int x, int y)
-    {
-        return _marker.Contains((x, y));
-    }
+    public bool Contains(int x, int y) => x >= 0 && y >= 0 && x <= MxX && y <= MxY;
+    public void AddScent(int x, int y) => _marker.Add((x, y));
+    public bool HasScent(int x, int y) => _marker.Contains((x, y));
 }
 class Robot
 {

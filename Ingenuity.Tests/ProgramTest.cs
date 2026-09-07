@@ -1,7 +1,4 @@
-﻿using System.Runtime.CompilerServices;
-using Ingenuity;
-
-namespace Ingenuity.Tests;
+﻿namespace Ingenuity.Tests;
 
 public class RobotTest
 {

@@ -6,35 +6,51 @@ interface ICommand
     void Execute(World world, Robot robot);
 }
 
-public class TurnLeftCommand : ICommand
+class TurnLeftCommand : ICommand
 {
     public char Letter => 'L';
 
-    void ICommand.Execute(World world, Robot robot)
+    public void Execute(World world, Robot robot)
     {
         robot.TurnLeft();
     }
 }
-public class TurnRightCommand : ICommand
+class TurnRightCommand : ICommand
 {
     public char Letter => 'R';
 
-    void ICommand.Execute(World world, Robot robot)
+    public void Execute(World world, Robot robot)
     {
         robot.TurnRight();
     }
 }
-public class MoveForwardCommand : ICommand
+class MoveForwardCommand : ICommand
 {
     public char Letter => 'F';
 
-    void ICommand.Execute(World world, Robot robot)
+    public void Execute(World world, Robot robot)
     {
         robot.MoveForward(world);
     }
 }
 
-// ---
+/* No Implementation - Example Only!
+
+class MoveBackwardCommand: ICommand
+{
+    public char Letter => 'B';
+
+    public void Execute(World world, Robot robot)
+    {
+        robot.TurnLeft();
+        robot.TurnLeft();
+        robot.MoveForward(world);
+        robot.TurnRight();
+        robot.TurnRight();
+    }
+}
+*/
+
 
 class CommandSet
 {
@@ -44,7 +60,7 @@ class CommandSet
     {
         foreach(ICommand c in commands)
         {
-            Commands[c.Letter] = c;
+            Commands.Add(c.Letter, c);
         }        
     }
 
