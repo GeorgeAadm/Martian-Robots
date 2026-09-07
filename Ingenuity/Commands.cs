@@ -74,19 +74,11 @@ class CommandSet
         return new CommandSet(commands);
     }
 
-    public bool IsKnown(char letter)
-    {
-        return Commands.ContainsKey(letter);
-    }
-    public IEnumerable<char> Letters()
-    {
-        return Commands.Keys;
-    }
 
-    public ICommand? GetValue(char letter)
-    {
-        return Commands.TryGetValue(letter, out ICommand? cmd) ? cmd : null;
-    }
+    public bool IsKnown(char letter) => Commands.ContainsKey(letter);
+    public IEnumerable<char> Letters() => Commands.Keys;
+
+    public ICommand? GetValue(char letter) => Commands.TryGetValue(letter, out ICommand? cmd) ? cmd : null;
 
     public ICommand this[char letter] => Commands.TryGetValue(letter, out ICommand? cmd)
     ? cmd
