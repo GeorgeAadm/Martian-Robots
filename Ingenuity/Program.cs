@@ -73,21 +73,14 @@ class Robot
     }    
 }
 
-static class MissionControl
+static class Navigator
 {
-    public static void Navigate(World world, Robot robot, string commands)
+    public static void Run(World world, Robot robot, string commands, CommandSet commandSet)
     {
         foreach(char c in commands)
         {
-            if (robot.IsLost) break;   
-
-            switch(c)
-            {
-                case 'L' : robot.TurnLeft(); break;
-                case 'R' : robot.TurnRight(); break;
-                case 'F' : robot.MoveForward(world); break;
-                default : throw new ArgumentException($"Invalid Command: {c}."); // skipp invalid commands - allow continue ?
-            }
+            if (robot.IsLost) break;  
+            commandSet[c].Execute(world, robot); 
         }
     }
 }
@@ -96,6 +89,7 @@ class Program
 {
     const int MaxCoordinate = 50;
     const int MaxInstructionLength = 100;
+    static readonly CommandSet Commands = CommandSet.Default();
 
     static void Main(string[] args)
     {
@@ -126,7 +120,7 @@ class Program
             }
 
             // Plot robot journey on world-map 
-            MissionControl.Navigate(world, robot, commands);
+            Navigator.Run(world, robot, commands, Commands);
             journeys.Add(robot);
         }
         
@@ -177,7 +171,7 @@ class Program
             return false;   
         }
         commands = instructions.Trim().ToUpper();
-        if(commands.Length > MaxInstructionLength || commands.Any(c => !"LRF".Contains(c)))
+        if(commands.Length > MaxInstructionLength || commands.Any(c => !Commands.IsKnown(c)))
         { 
             error = $"Invalid commands. Use only L|R|F characters. Max number of commands {MaxInstructionLength}.";
             return false;

@@ -1,4 +1,5 @@
-﻿using Ingenuity;
+﻿using System.Runtime.CompilerServices;
+using Ingenuity;
 
 namespace Ingenuity.Tests;
 
@@ -21,6 +22,7 @@ public class RobotTest
     [Fact]
     public void SampleInput_ProducesSampleOutput()
     {
+        var commandSet = CommandSet.Default();
         var world = new World(5, 3);
         var inputs = new []
         {
@@ -32,7 +34,7 @@ public class RobotTest
         var results = new List<string>();
         foreach(var (robot, commands) in inputs)
         {
-            MissionControl.Navigate(world, robot, commands);
+            Navigator.Run(world, robot, commands, commandSet);
             results.Add(robot.ToString());
         }
 
